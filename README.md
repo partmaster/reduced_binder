@@ -52,17 +52,30 @@ Widget wrapWithScope({required Widget child}) =>
 #### 4. Trigger a rebuild on widgets selectively after a state change.
 
 ```dart
-extension WrapWithConsumer<S> on ReducibleLogic<S> {
-  Widget wrapWithConsumer<P>({
-    required StateRef<S> stateRef,
-    required ReducedTransformer<S, P> transformer,
-    required ReducedWidgetBuilder<P> builder,
-  }) =>
-      Consumer<P>(
-        watchable: stateRef.select((state) => transformer(this)),
-        builder: (_, __, ___) => builder(props: transformer(this)),
-      );
-}
+Widget wrapWithConsumer<S, P>({
+  required LogicRef<ReducibleLogic<S>> logicRef,
+  required ReducedTransformer<S, P> transformer,
+  required ReducedWidgetBuilder<P> builder,
+}) =>
+    Builder(
+      builder: (context) => internalWrapWithConsumer(
+        logic: context.readScope().use(logicRef),
+        transformer: transformer,
+        builder: builder,
+      ),
+    );
+```
+
+```dart
+Consumer<P> internalWrapWithConsumer<S, P>({
+  required ReducibleLogic<S> logic,
+  required ReducedTransformer<S, P> transformer,
+  required ReducedWidgetBuilder<P> builder,
+}) =>
+    Consumer<P>(
+      watchable: logic.ref.select((state) => transformer(logic)),
+      builder: (_, __, ___) => builder(props: transformer(logic)),
+    );
 ```
 
 ## Getting started
@@ -165,13 +178,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: Builder(
-          builder: (context) =>
-              context.logic(logicRef).wrapWithConsumer(
-                    stateRef: stateRef,
-                    transformer: PropsTransformer.transform,
-                    builder: MyHomePage.new,
-                  ),
+        home: wrapWithConsumer(
+          logicRef: logicRef,
+          transformer: PropsTransformer.transform,
+          builder: MyHomePage.new,
         ),
       );
 }
