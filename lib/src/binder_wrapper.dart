@@ -9,8 +9,7 @@ import 'package:binder/src/build_context_extensions.dart';
 import 'binder_reducible.dart';
 
 /// Wraps the given child with a BinderScope.
-Widget wrapWithScope({required Widget child}) =>
-    BinderScope(child: child);
+Widget wrapWithScope({required Widget child}) => BinderScope(child: child);
 
 /// Builds a widget with the given builder and wraps it with a Consumer.
 Widget wrapWithConsumer<S, P>({
