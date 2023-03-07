@@ -17,11 +17,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
         theme: ThemeData(primarySwatch: Colors.blue),
         home: Builder(
-          builder: (context) => context.logic(logicRef).wrapWithConsumer(
-                stateRef: stateRef,
-                transformer: PropsTransformer.transform,
-                builder: MyHomePage.new,
-              ),
+          builder: (context) => wrapWithConsumer(
+            logicRef: logicRef,
+            transformer: PropsTransformer.transform,
+            builder: MyHomePage.new,
+          ),
         ),
       );
 }

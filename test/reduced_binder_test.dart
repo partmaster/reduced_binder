@@ -41,8 +41,8 @@ void main() {
     final scope = BinderScopeState();
     final objectUnderTest = ReducibleLogic(scope, stateRef);
     const child = SizedBox();
-    final consumer = objectUnderTest.wrapWithConsumer(
-      stateRef: stateRef,
+    final consumer = internalWrapWithConsumer(
+      logic: objectUnderTest,
       builder: ({Key? key, required int props}) => child,
       transformer: (reducible) => 1,
     );
