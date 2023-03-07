@@ -1,4 +1,4 @@
-// binder_reducible.dart
+// binder_store.dart
 
 import 'package:binder/binder.dart';
 import 'package:flutter/widgets.dart';
@@ -6,9 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:binder/src/build_context_extensions.dart';
 import 'package:reduced/reduced.dart';
 
-/// Derivation of the mixin [Logic] with support of the [Reducible] interface.
-class ReducibleLogic<S> extends Reducible<S> with Logic {
-  ReducibleLogic(this.scope, this.ref);
+/// Derivation of the mixin [Logic] with support of the [ReducedStore] interface.
+class Store<S> extends ReducedStore<S> with Logic {
+  Store(this.scope, this.ref);
 
   final StateRef<S> ref;
 
@@ -23,7 +23,6 @@ class ReducibleLogic<S> extends Reducible<S> with Logic {
 }
 
 extension ExtensionLogicOnBuildContext on BuildContext {
-  /// Convenience method for getting a [ReducibleLogic] instance.
-  ReducibleLogic<S> logic<S>(LogicRef<ReducibleLogic<S>> ref) =>
-      readScope().use(ref);
+  /// Convenience method for getting a [Store] instance.
+  Store<S> store<S>(LogicRef<Store<S>> ref) => readScope().use(ref);
 }

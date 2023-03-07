@@ -7,18 +7,18 @@
 
 Implementation of the 'reduced' API for the 'Binder' state management framework with following features:
 
-1. Implementation of the ```Reducible``` interface 
-2. Extension on the ```BuildContext``` for convenient access to the  ```Reducible``` instance.
+1. Implementation of the ```ReducedStore``` interface 
+2. Extension on the ```BuildContext``` for convenient access to the  ```ReducedStore``` instance.
 3. Add a state management scope.
 4. Trigger a rebuild on widgets selectively after a state change.
 
 ## Features
 
-#### 1. Implementation of the ```Reducible``` interface 
+#### 1. Implementation of the ```ReducedStore``` interface 
 
 ```dart
-class ReducibleLogic<S> extends Reducible<S> with Logic {
-  ReducibleLogic(this.scope, this.ref);
+class Store<S> extends ReducedStore<S> with Logic {
+  Store(this.scope, this.ref);
 
   final StateRef<S> ref;
 
@@ -33,49 +33,44 @@ class ReducibleLogic<S> extends Reducible<S> with Logic {
 }
 ```
 
-#### 2. Extension on the ```BuildContext``` for convenient access to the  ```Reducible``` instance.
+#### 2. Extension on the ```BuildContext``` for convenient access to the  ```ReducedStore``` instance.
 
 ```dart
 extension ExtensionLogicOnBuildContext on BuildContext {
-  ReducibleLogic<S> logic<S>(LogicRef<ReducibleLogic<S>> ref) =>
-      readScope().use(ref);
+  Store<S> store<S>(LogicRef<Store<S>> ref) => readScope().use(ref);
 }
 ```
 
 #### 3. Add a state management scope.
 
 ```dart
-Widget wrapWithScope({required Widget child}) =>
-    BinderScope(child: child);
+typedef ReducedScope = BinderScope;
 ```
 
 #### 4. Trigger a rebuild on widgets selectively after a state change.
 
 ```dart
-Widget wrapWithConsumer<S, P>({
-  required LogicRef<ReducibleLogic<S>> logicRef,
-  required ReducedTransformer<S, P> transformer,
-  required ReducedWidgetBuilder<P> builder,
-}) =>
-    Builder(
-      builder: (context) => internalWrapWithConsumer(
-        logic: context.readScope().use(logicRef),
-        transformer: transformer,
-        builder: builder,
-      ),
-    );
-```
+class ReducedConsumer<S, P> extends StatelessWidget {
+  const ReducedConsumer({
+    super.key,
+    required this.logicRef,
+    required this.transformer,
+    required this.builder,
+  });
 
-```dart
-Consumer<P> internalWrapWithConsumer<S, P>({
-  required ReducibleLogic<S> logic,
-  required ReducedTransformer<S, P> transformer,
-  required ReducedWidgetBuilder<P> builder,
-}) =>
-    Consumer<P>(
-      watchable: logic.ref.select((state) => transformer(logic)),
-      builder: (_, __, ___) => builder(props: transformer(logic)),
-    );
+  final LogicRef<Store<S>> logicRef;
+  final ReducedTransformer<S, P> transformer;
+  final ReducedWidgetBuilder<P> builder;
+
+  @override
+  Widget build(BuildContext context) =>
+      _build(context.readScope().use(logicRef));
+
+  Consumer<P> _build(Store<S> store) => Consumer<P>(
+        watchable: store.ref.select((state) => transformer(store)),
+        builder: (_, __, ___) => builder(props: transformer(store)),
+      );
+}
 ```
 
 ## Getting started
@@ -84,8 +79,8 @@ In the pubspec.yaml add dependencies on the packages 'reduced', 'reduced_binder'
 
 ```
 dependencies:
-  reduced: ^0.1.0
-  reduced_binder: ^0.1.0
+  reduced: 0.2.1
+  reduced_binder: 0.2.1
   binder: ^0.4.0
 ```
 
@@ -123,7 +118,7 @@ class Props {
 }
 
 class PropsTransformer {
-  static Props transform(Reducible<int> reducible) => Props(
+  static Props transform(ReducedStore<int> reducible) => Props(
         counterText: '${reducible.state}',
         onPressed: CallableAdapter(reducible, Incrementer()),
       );
@@ -168,7 +163,7 @@ import 'package:reduced_binder/reduced_binder.dart';
 import 'logic.dart';
 
 final stateRef = StateRef(0);
-final logicRef = LogicRef((scope) => ReducibleLogic(scope, stateRef));
+final logicRef = LogicRef((scope) => Store(scope, stateRef));
 
 void main() => runApp(const MyApp());
 
@@ -176,12 +171,14 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        theme: ThemeData(primarySwatch: Colors.blue),
-        home: wrapWithConsumer(
-          logicRef: logicRef,
-          transformer: PropsTransformer.transform,
-          builder: MyHomePage.new,
+  Widget build(BuildContext context) => ReducedScope(
+        child: MaterialApp(
+          theme: ThemeData(primarySwatch: Colors.blue),
+          home: ReducedConsumer(
+            logicRef: logicRef,
+            transformer: PropsTransformer.transform,
+            builder: MyHomePage.new,
+          ),
         ),
       );
 }
