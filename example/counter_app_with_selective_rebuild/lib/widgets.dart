@@ -53,8 +53,5 @@ class MyCounterWidget extends StatelessWidget {
   final MyCounterWidgetProps props;
 
   @override
-  Widget build(BuildContext context) {
-    print('MyCounterWidget#build text=${props.counterText}');
-    return Text(props.counterText);
-  }
+  Widget build(BuildContext context) => Text(props.counterText);
 }

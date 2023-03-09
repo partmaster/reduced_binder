@@ -1,7 +1,5 @@
 // consumer.dart
 
-import 'package:binder/binder.dart';
-import 'package:counter_app_with_selective_rebuild/state.dart';
 import 'package:flutter/widgets.dart';
 import 'package:reduced/reduced.dart';
 import 'package:reduced_binder/reduced_binder.dart';
