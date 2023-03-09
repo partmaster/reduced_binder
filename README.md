@@ -67,8 +67,11 @@ class ReducedConsumer<S, P> extends StatelessWidget {
       _build(context.readScope().use(logicRef));
 
   Consumer<P> _build(Store<S> store) => Consumer<P>(
-        watchable: store.ref.select((state) => transformer(store)),
-        builder: (_, __, ___) => builder(props: transformer(store)),
+        watchable: store.ref.select(
+          (state) => transformer(
+              ReducedStoreProxy(() => state, store.reduce, store)),
+        ),
+        builder: (_, props, ___) => builder(props: props),
       );
 }
 ```
