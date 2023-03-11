@@ -28,8 +28,8 @@ class ReducedConsumer<S, P> extends StatelessWidget {
 
   Consumer<P> _build(Store<S> store) => Consumer<P>(
         watchable: store.ref.select(
-          (state) =>
-              transformer(ReducedStoreProxy(() => state, store.reduce, store)),
+          (state) => transformer(
+              ReducedStoreProxy(() => state, store.dispatch, store)),
         ),
         builder: (_, props, ___) => builder(props: props),
       );

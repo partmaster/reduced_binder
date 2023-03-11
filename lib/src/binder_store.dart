@@ -19,7 +19,7 @@ class Store<S> extends ReducedStore<S> with Logic {
   get state => read(ref);
 
   @override
-  reduce(reducer) => write(ref, reducer(state));
+  dispatch(event) => write(ref, event(state));
 }
 
 extension ExtensionLogicOnBuildContext on BuildContext {
