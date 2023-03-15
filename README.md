@@ -7,18 +7,18 @@
 
 Implementation of the 'reduced' API for the 'Binder' state management framework with following features:
 
-1. Implementation of the ```ReducedStore``` interface 
-2. Extension on the ```BuildContext``` for convenient access to the  ```ReducedStore``` instance.
+1. Implementation of the ```Store``` interface 
+2. Extension on the ```BuildContext``` for convenient access to the  ```Store``` instance.
 3. Add a state management scope.
 4. Trigger a rebuild on widgets selectively after a state change.
 
 ## Features
 
-#### 1. Implementation of the ```ReducedStore``` interface 
+#### 1. Implementation of the ```Store``` interface 
 
 ```dart
-class Store<S> extends ReducedStore<S> with Logic {
-  Store(this.scope, this.ref);
+class ReducedStore<S> extends Store<S> with Logic {
+  ReducedStore(this.scope, this.ref);
 
   final StateRef<S> ref;
 
@@ -29,15 +29,16 @@ class Store<S> extends ReducedStore<S> with Logic {
   get state => read(ref);
 
   @override
-  reduce(reducer) => write(ref, reducer(state));
+  process(event) => write(ref, event(state));
 }
 ```
 
-#### 2. Extension on the ```BuildContext``` for convenient access to the  ```ReducedStore``` instance.
+#### 2. Extension on the ```BuildContext``` for convenient access to the  ```Store``` instance.
 
 ```dart
 extension ExtensionLogicOnBuildContext on BuildContext {
-  Store<S> store<S>(LogicRef<Store<S>> ref) => readScope().use(ref);
+  ReducedStore<S> store<S>(LogicRef<ReducedStore<S>> ref) =>
+      readScope().use(ref);
 }
 ```
 
@@ -54,22 +55,21 @@ class ReducedConsumer<S, P> extends StatelessWidget {
   const ReducedConsumer({
     super.key,
     required this.logicRef,
-    required this.transformer,
+    required this.mapper,
     required this.builder,
   });
 
-  final LogicRef<Store<S>> logicRef;
-  final ReducedTransformer<S, P> transformer;
-  final ReducedWidgetBuilder<P> builder;
+  final LogicRef<ReducedStore<S>> logicRef;
+  final StateToPropsMapper<S, P> mapper;
+  final WidgetFromPropsBuilder<P> builder;
 
   @override
   Widget build(BuildContext context) =>
       _build(context.readScope().use(logicRef));
 
-  Consumer<P> _build(Store<S> store) => Consumer<P>(
+  Consumer<P> _build(ReducedStore<S> store) => Consumer<P>(
         watchable: store.ref.select(
-          (state) => transformer(
-              ReducedStoreProxy(() => state, store.reduce, store)),
+          (state) => mapper(state, store),
         ),
         builder: (_, props, ___) => builder(props: props),
       );
@@ -82,8 +82,11 @@ In the pubspec.yaml add dependencies on the packages 'reduced', 'reduced_binder'
 
 ```
 dependencies:
-  reduced: 0.2.1
-  reduced_binder: 0.2.1
+  reduced: 0.4.0
+  reduced_binder: 
+    git:
+      url: https://github.com/partmaster/reduced_binder.git
+      ref: v0.4.0
   binder: ^0.4.0
 ```
 
@@ -108,23 +111,26 @@ Implementation of the counter demo app logic with the 'reduced' API without furt
 
 import 'package:flutter/material.dart';
 import 'package:reduced/reduced.dart';
+import 'package:reduced/callbacks.dart';
 
-class Incrementer extends Reducer<int> {
+class CounterIncremented extends Event<int> {
   @override
   int call(int state) => state + 1;
 }
 
 class Props {
-  Props({required this.counterText, required this.onPressed});
+  const Props({required this.counterText, required this.onPressed});
+
   final String counterText;
-  final Callable<void> onPressed;
+  final VoidCallable onPressed;
 }
 
-class PropsTransformer {
-  static Props transform(ReducedStore<int> reducible) => Props(
-        counterText: '${reducible.state}',
-        onPressed: CallableAdapter(reducible, Incrementer()),
-      );
+class PropsMapper extends Props {
+  PropsMapper(int state, EventProcessor<int> processor)
+      : super(
+          counterText: '$state',
+          onPressed: EventCarrier(processor, CounterIncremented()),
+        );
 }
 
 class MyHomePage extends StatelessWidget {
@@ -134,7 +140,9 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('reduced_binder example')),
+        appBar: AppBar(
+          title: const Text('reduced_binder example'),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -166,7 +174,7 @@ import 'package:reduced_binder/reduced_binder.dart';
 import 'logic.dart';
 
 final stateRef = StateRef(0);
-final logicRef = LogicRef((scope) => Store(scope, stateRef));
+final logicRef = LogicRef((scope) => ReducedStore(scope, stateRef));
 
 void main() => runApp(const MyApp());
 
@@ -179,7 +187,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(primarySwatch: Colors.blue),
           home: ReducedConsumer(
             logicRef: logicRef,
-            transformer: PropsTransformer.transform,
+            mapper: PropsMapper.new,
             builder: MyHomePage.new,
           ),
         ),

@@ -9,4 +9,4 @@ final stateRef = StateRef(
   MyAppState(title: 'reduced_binder example'),
 );
 
-final logicRef = LogicRef((scope) => Store(scope, stateRef));
+final logicRef = LogicRef((scope) => ReducedStore(scope, stateRef));

@@ -6,9 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:binder/src/build_context_extensions.dart';
 import 'package:reduced/reduced.dart';
 
-/// Derivation of the mixin [Logic] with support of the [ReducedStore] interface.
-class Store<S> extends ReducedStore<S> with Logic {
-  Store(this.scope, this.ref);
+/// Derivation of the mixin [Logic] with support of the [Store] interface.
+class ReducedStore<S> extends Store<S> with Logic {
+  ReducedStore(this.scope, this.ref);
 
   final StateRef<S> ref;
 
@@ -19,10 +19,11 @@ class Store<S> extends ReducedStore<S> with Logic {
   get state => read(ref);
 
   @override
-  dispatch(event) => write(ref, event(state));
+  process(event) => write(ref, event(state));
 }
 
 extension ExtensionLogicOnBuildContext on BuildContext {
-  /// Convenience method for getting a [Store] instance.
-  Store<S> store<S>(LogicRef<Store<S>> ref) => readScope().use(ref);
+  /// Convenience method for getting a [ReducedStore] instance.
+  ReducedStore<S> store<S>(LogicRef<ReducedStore<S>> ref) =>
+      readScope().use(ref);
 }

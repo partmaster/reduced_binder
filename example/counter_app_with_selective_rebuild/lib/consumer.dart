@@ -6,7 +6,7 @@ import 'package:reduced_binder/reduced_binder.dart';
 
 import 'props.dart';
 import 'provider.dart';
-import 'transformer.dart';
+import 'mappers.dart';
 
 class MyHomePagePropsConsumer extends StatelessWidget {
   const MyHomePagePropsConsumer({
@@ -14,12 +14,12 @@ class MyHomePagePropsConsumer extends StatelessWidget {
     required this.builder,
   });
 
-  final ReducedWidgetBuilder<MyHomePageProps> builder;
+  final WidgetFromPropsBuilder<MyHomePageProps> builder;
 
   @override
   Widget build(BuildContext context) => ReducedConsumer(
         logicRef: logicRef,
-        transformer: transformMyHomePageProps,
+        mapper: MyHomePagePropsMapper.new,
         builder: builder,
       );
 }
@@ -30,12 +30,12 @@ class MyCounterWidgetPropsConsumer extends StatelessWidget {
     required this.builder,
   });
 
-  final ReducedWidgetBuilder<MyCounterWidgetProps> builder;
+  final WidgetFromPropsBuilder<MyCounterWidgetProps> builder;
 
   @override
   Widget build(context) => ReducedConsumer(
         logicRef: logicRef,
-        transformer: transformMyCounterWidgetProps,
+        mapper: MyCounterWidgetPropsMapper.new,
         builder: builder,
       );
 }

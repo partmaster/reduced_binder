@@ -7,14 +7,14 @@ void main() {
   test('Store state 0', () {
     final scope = BinderScopeState();
     final stateRef = StateRef(0);
-    final objectUnderTest = Store(scope, stateRef);
+    final objectUnderTest = ReducedStore(scope, stateRef);
     expect(objectUnderTest.state, 0);
   });
 
   test('Store state 1', () {
     final scope = BinderScopeState();
     final stateRef = StateRef(1);
-    final objectUnderTest = Store(scope, stateRef);
+    final objectUnderTest = ReducedStore(scope, stateRef);
     expect(objectUnderTest.state, 1);
   });
 }
